@@ -1,33 +1,59 @@
 
 import socket
+import protocol
 
-PORT = 8000
 
 def main():
     my_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    my_socket.connect(("127.0.0.1", PORT))
+
+    try:
+      my_socket.connect(("127.0.0.1", protocol.PORT))
+
+      my_socket.settimeout(5.0)
+    except socket.error:
+        print("Error! connction failed\n")
+        my_socket.close()
+  
 
     while True:
-        user_input = input("Enter command\n")
+        user_input = input("Enter command (5 bytes):\n")
+        # 1. Add length field ("HELLO" -> "04HELLO")
+        # 2. Send it to the server
 
-        # 1. Send it to the server
-        my_socket.send(user_input.encode())
+        try:
+            my_socket.send(protocol.create_msg(user_input))
+        except socket.error:
+                #write error code 
+            print("Error! sending message failed\n")
+            my_socket.close()
 
-        # 2. Get server's response
-        data = my_socket.recv(1024).decode()
 
-        # 3. If server's response is valid, print it
+        # 3. Get server's response
+        try:
+            data = protocol.get_msg(my_socket)
+        except socket.error:
+            print("Error! reciving message failed\n")
+            my_socket.close()
+
+        # 4. If server's response is valid, print it
         if data:
             print(data)
-    
-        # 4. If command is EXIT, break from while loop
+      
+        # 5. If command is EXIT, break from while loop
         if user_input == "EXIT":
             break
 
     print("Closing\n")
-
     # Close socket
     my_socket.close()
+
+    
+
+
+
+
+
+
 
 
 if __name__ == "__main__":
