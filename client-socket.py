@@ -1,9 +1,3 @@
-"""EX 2.6 client implementation
-   Author: Mendi Yacobovitz
-   Date: 28/07/24
-   Possible client commands defined in protocol.py
-"""
-
 import socket
 import protocol
 
