@@ -1,45 +1,43 @@
-"""EX 2.6 client implementation
-   Author: Mendi Yacobovitz
-   Date: 28/07/24
-   Possible client commands defined in protocol.py
-"""
-
-import socket
-import protocol
+import json
 
 
-def main():
-    my_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    my_socket.connect(("127.0.0.1", protocol.PORT))
-
-    while True:
-        user_input = input("Enter 'L' to log-in or 'S' to sign-up: ")
-        try:
-            if user_input == 'L':
-                my_socket.send(protocol.login_msg())
-            elif user_input == 'S':
-                my_socket.send(protocol.signup_msg())
-            else:
-                my_socket.send(protocol.create_msg)
-        
-            # 3. Get server's response
-        except socket.error:
-            print("Error!")
-            
-        data = protocol.get_msg(my_socket)
-        # 4. If server's response is valid, print it
-        if data[0]:
-            print(data[1])
-      
-        # 5. If command is EXIT, break from while loop
-        if user_input == "EXIT":
-            break
-
-    print("Closing\n")
-    # Close socket
-    my_socket.close()
+LENGTH_FIELD_SIZE = 4
+PORT = 8000
 
 
-if __name__ == "__main__":
-    main()
+def create_msg(data, status=0):
+    """Create a valid protocol message, with length field"""
+    lenght = len(data)
+    field_lenght = str(lenght).zfill(LENGTH_FIELD_SIZE)
+    print((str(status) + field_lenght + data).encode())
 
+    return (str(status) + field_lenght + data).encode()
+
+def get_msg(my_socket):
+    """Extract message from protocol, without the length field
+       If length field does not include a number, returns False, "Error" """
+    message_len = my_socket.recv(4).decode()
+
+    if str(message_len).isdigit() == False:
+        return False, "Error"
+    
+    message = my_socket.recv(int(message_len)).decode()
+
+    return True ,message
+
+def login_msg():
+    user_name = input("user name: ")
+    password = input("password: ")
+    user_data = {"username" : user_name, "password" : password}
+    data = json.dumps(user_data)
+
+    return create_msg(data, 100)
+
+def signin_msg():
+    user_name = input("user name: ")
+    password = input("password: ")
+    email = input("email: ")
+    user_data = {"username" : user_name, "password" : password, "email" : email}
+    data = json.dumps(user_data)
+
+    return create_msg(data, 101)
