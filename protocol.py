@@ -5,13 +5,13 @@ LENGTH_FIELD_SIZE = 4
 PORT = 8000
 
 
+
 def create_msg(data, status=0):
     """Create a valid protocol message, with length field"""
     lenght = len(data)
-    field_lenght = str(lenght).zfill(LENGTH_FIELD_SIZE)
-    print((str(status) + field_lenght + data).encode())
-
-    return (str(status) + field_lenght + data).encode()
+    message = (status).to_bytes(1, byteorder='big') + len(data).to_bytes(4, byteorder='big') + data.encode("ASCII");
+    #print(message)
+    return message
 
 def get_msg(my_socket):
     """Extract message from protocol, without the length field
