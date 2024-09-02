@@ -1,3 +1,9 @@
+"""EX 2.6 client implementation
+   Author: Mendi Yacobovitz
+   Date: 28/07/24
+   Possible client commands defined in protocol.py
+"""
+
 import socket
 import protocol
 
@@ -5,7 +11,6 @@ import protocol
 def main():
     my_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     my_socket.connect(("127.0.0.1", protocol.PORT))
-     my_socket.settimeout(5.0)
 
     while True:
         user_input = input("Enter 'L' to log-in or 'S' to sign-up: ")
@@ -13,14 +18,14 @@ def main():
             if user_input == 'L':
                 my_socket.send(protocol.login_msg())
             elif user_input == 'S':
-                my_socket.send(protocol.signup_msg())
+                my_socket.send(protocol.signin_msg())
             else:
                 my_socket.send(protocol.create_msg)
         
             # 3. Get server's response
         except socket.error:
             print("Error!")
-            
+
         data = protocol.get_msg(my_socket)
         # 4. If server's response is valid, print it
         if data[0]:
