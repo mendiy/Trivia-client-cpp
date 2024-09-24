@@ -2,26 +2,36 @@ from fastapi import FastAPI
 import socket
 import protocol
 from pydantic import BaseModel
+from fastapi.middleware.cors import CORSMiddleware
 
 class Item(BaseModel):
-    username: str | None = None,
-    password: str | None = None,
-    email: str | None = None,
+    username: str | None = None
+    password: str | None = None
+    email: str | None = None
 
 class Room(BaseModel):
-    room_name: str
-    max_users: int
-    answer_timeout: float
-    question_count: int
+    roomName: str
+    maxUsers: int
+    answerTimeout: int
+    questionCount: int
 
 my_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 my_socket.connect((protocol.IP, protocol.PORT))
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=['*'],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 print("http server running...")
 
 @app.post("/Log-In")
 async def login(body: Item):
+    print(body)
     body.dict()
     message_dict = {
         "username": body.username,
@@ -29,6 +39,7 @@ async def login(body: Item):
     }
     protocol.send(my_socket, protocol.MESSAGE_CODES["LOG_IN"], message_dict)
     response, code = protocol.recv(my_socket)
+    print(response, code)
     return  response, code
 
 @app.post("/Sign-In")
@@ -56,14 +67,14 @@ async def logout():
     return  response, code
 
 @app.get("/Join-Room")
-async def join_room(room_id : int):
-    protocol.send(my_socket, protocol.MESSAGE_CODES["JOIN_ROOM"], {room_id: room_id})
+async def join_room(roomId : int):
+    protocol.send(my_socket, protocol.MESSAGE_CODES["JOIN_ROOM"], {'roomId': roomId})
     response, code = protocol.recv(my_socket)
     return  response, code
 
-@app.get("/Get-Players-in-Room")
-async def get_players(room_id : int):
-    protocol.send(my_socket, protocol.MESSAGE_CODES["GET_PLAYERS_IN_ROOM"], {room_id: room_id})
+@app.get("/Get-Players-In-Room")
+async def get_players(roomId : int):
+    protocol.send(my_socket, protocol.MESSAGE_CODES["GET_PLAYERS_IN_ROOM"], {'roomId': roomId})
     response, code = protocol.recv(my_socket)
     return  response, code
 
@@ -74,7 +85,7 @@ async def get_scores():
     return  response, code
 
 @app.get("/Get-Personal-Stats")
-async def get_stats(user_id : int):
-    protocol.send(my_socket, protocol.MESSAGE_CODES["PERSONAL_STATS"], {user_id: user_id})
+async def get_stats():
+    protocol.send(my_socket, protocol.MESSAGE_CODES["PERSONAL_STATS"])
     response, code = protocol.recv(my_socket)
     return  response, code
